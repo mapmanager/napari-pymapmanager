@@ -1,0 +1,11 @@
+site_name: napari-pymapmanager
+site_description: A napari plugin for PyMapManager
+site_author: Vasudha Jha
+
+theme: readthedocs
+
+
+repo_url: https://github.com/mapmanager/napari-pymapmanager
+
+pages:
+- Home: index.md

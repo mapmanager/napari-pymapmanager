@@ -2,9 +2,16 @@ name: napari-pymapmanager
 display_name: napari PyMapManager
 contributions:
   commands:
+    # - id: napari-pymapmanager.get_reader
+    #   python_name: napari_pymapmanager._reader:napari_get_reader
+    #   title: Open a single image or a stack of images
     - id: napari-pymapmanager.make_qwidget
       python_name: napari_pymapmanager._widget:QtPropertiesTable
       title: QtPropertiesTable Widget
+  # readers:
+  #   - command: napari-pymapmanager.get_reader
+  #     accepts_directories: false
+  #     filename_patterns: ['*.tif', '*.tiff']
   widgets:
     - command: napari-pymapmanager.make_qwidget
       display_name: QtPropertiesTable Widget

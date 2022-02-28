@@ -1,7 +1,47 @@
-# from qtpy.QtCore import QAbstractTableModel, Qt
 from qtpy.QtCore import QAbstractTableModel, Qt
 
 from .utils import str2prop
+
+
+class TableModel(QAbstractTableModel):
+    def __init__(self, data):
+        super().__init__()
+        self._data = data
+        self.columns = ["z", "y", "x"]
+
+    def data(self, index, role):
+        if role == Qt.DisplayRole:
+            # Note: self._data[index.row()][index.column()] will also work
+            value = self._data[index.row(), index.column()]
+            return str(value)
+
+    def rowCount(self, index):
+        return self._data.shape[0]
+
+    def columnCount(self, index):
+        return self._data.shape[1]
+
+    def flags(self, index):
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
+
+    def setData(self, index, value, role):
+        if not index.isValid():
+            return False
+        if role != Qt.EditRole:
+            return False
+
+        self._data[index.row(), index.column()] = value
+        self.dataChanged.emit(index, index)
+        return True
+
+    def headerData(self, section, orientation, role):
+        # section is the index of the column/row.
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return str(self._data.columns[section])
+
+            # if orientation == Qt.Vertical:
+            #     return str(self._data.index[section])
 
 
 class DictTableModel(QAbstractTableModel):

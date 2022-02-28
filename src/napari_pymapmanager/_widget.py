@@ -1,8 +1,9 @@
 import napari
+import numpy as np
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QComboBox, QTableView, QVBoxLayout, QWidget
 
-from .table_models import DictTableModel
+from .table_models import DataTableModel
 
 
 class QtPropertiesTable(QWidget):
@@ -46,12 +47,12 @@ class QtPropertiesTable(QWidget):
         self.setLayout(self.vbox_layout)
 
     def initialize_layer_combobox(self):
-        """Populates the combobox with all layers that contain properties"""
+        """Populates the combobox with all layers that have data"""
         points_layers_names = [
             layer.name
             for layer in self.viewer.layers
-            # if hasattr(layer, "properties")  # noqa
-            if "points" in str(type(layer)).lower()  # noqa
+            # if hasattr(layer, "data")
+            if self._is_points_layer(layer)  # noqa
         ]
 
         print(f"points_layers_names: {points_layers_names}")
@@ -73,9 +74,8 @@ class QtPropertiesTable(QWidget):
         layer_name = event.value.name
         print(f"adding layer {layer_name}")
         layer = self.viewer.layers[layer_name]
-        # if hasattr(layer, "properties"):
-        # print(str(type(layer)).lower())
-        if "points" in str(type(layer)).lower():
+        # if hasattr(layer, "data"):
+        if self._is_points_layer(layer):
             print("updating combo box")
             self.layer_combo_box.addItem(layer_name)
 
@@ -107,10 +107,9 @@ class QtPropertiesTable(QWidget):
             layer_name = self.layer_combo_box.itemText(index)
             selected_layer = self.viewer.layers[layer_name]
             print(f"selected_layer.data: {selected_layer.data}")
-            # if hasattr(selected_layer, "properties"):
-            if "points" in str(type(selected_layer)).lower():
-                layer_properties = selected_layer.properties
-                self.table_model = DictTableModel(layer_properties)
+            # if hasattr(selected_layer, "data"):
+            if self._is_points_layer(selected_layer):
+                self.table_model = DataTableModel(selected_layer.data)
                 self.table.setModel(self.table_model)
 
                 # connect the events
@@ -122,7 +121,7 @@ class QtPropertiesTable(QWidget):
             else:
                 print("no properties")
         else:
-            self.table_model = DictTableModel({})
+            self.table_model = DataTableModel(np.ndarray())
             self.table.setModel(self.table_model)
 
     def update_table(self, event):
@@ -131,9 +130,7 @@ class QtPropertiesTable(QWidget):
         to the layer.events.properties event.
         """
         selected_layer = self.viewer.layers[self.selected_layer]
-        layer_properties = selected_layer.properties
-
-        self.table_model = DictTableModel(layer_properties)
+        self.table_model = DataTableModel(selected_layer.data)
         self.table.setModel(self.table_model)
         # self.table_model.dataChanged.connect(self._on_cell_edit)
 
@@ -161,7 +158,10 @@ class QtPropertiesTable(QWidget):
             from
         """
         layer = self.viewer.layers[layer_name]
-        layer.events.properties.disconnect(self.update_table)
+        layer.events.data.disconnect(self.update_table)
+
+    def _is_points_layer(self, layer):
+        return layer.data.shape[1] == 3
 
     # def _on_cell_edit(self, event):
     #     """Update the connected layer's properties when a cell

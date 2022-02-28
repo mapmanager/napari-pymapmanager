@@ -3,7 +3,7 @@ from qtpy.QtCore import QAbstractTableModel, Qt
 from .utils import str2prop
 
 
-class TableModel(QAbstractTableModel):
+class DataTableModel(QAbstractTableModel):
     def __init__(self, data):
         super().__init__()
         self._data = data
@@ -11,7 +11,6 @@ class TableModel(QAbstractTableModel):
 
     def data(self, index, role):
         if role == Qt.DisplayRole:
-            # Note: self._data[index.row()][index.column()] will also work
             value = self._data[index.row(), index.column()]
             return str(value)
 
@@ -38,7 +37,7 @@ class TableModel(QAbstractTableModel):
         # section is the index of the column/row.
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal:
-                return str(self._data.columns[section])
+                return str(self.columns[section % len(self.columns)])
 
             # if orientation == Qt.Vertical:
             #     return str(self._data.index[section])

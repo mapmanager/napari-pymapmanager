@@ -39,6 +39,9 @@ class QtPropertiesTable(QWidget):
 
         self.viewer.layers.events.inserted.connect(self.on_add_layer)
         self.viewer.layers.events.removed.connect(self.on_remove_layer)
+        self.viewer.layers.selection.events.changed.connect(
+            self.on_select_layer
+        )  # noqa
 
         self.vbox_layout = QVBoxLayout()
         self.vbox_layout.addWidget(self.layer_combo_box)
@@ -54,8 +57,6 @@ class QtPropertiesTable(QWidget):
             # if hasattr(layer, "data")
             if self._is_points_layer(layer)  # noqa
         ]
-
-        print(f"points_layers_names: {points_layers_names}")
 
         if len(points_layers_names) > 0:
             self.layer_combo_box.addItems(points_layers_names)
@@ -78,6 +79,24 @@ class QtPropertiesTable(QWidget):
         if self._is_points_layer(layer):
             print("updating combo box")
             self.layer_combo_box.addItem(layer_name)
+
+    def on_select_layer(self, event):
+        print(f"Event type: {type(event)}")
+        layer = event.added
+        print(f"selected layer {layer}")
+        # layer = self.viewer.layers[layer_name]
+        if self._is_points_layer(layer):
+            self.table_model = DataTableModel(layer.data)
+            self.table.setModel(self.table_model)
+
+            # connect the events
+            if self.layer is not None:
+                self._disconnect_layer_events_for_layer(self.layer)
+            self._connect_layer_events_for_layer(layer)
+            # self.table_model.dataChanged.connect(self._on_cell_edit)
+            self.layer = layer
+        else:
+            print("no properties")
 
     def on_remove_layer(self, event):
         """Callback function that updates the layer list combobox
@@ -147,6 +166,17 @@ class QtPropertiesTable(QWidget):
         layer = self.viewer.layers[layer_name]
         layer.events.properties.connect(self.update_table)
 
+    def _connect_layer_events_for_layer(self, layer):
+        """Connect the selected layer's properties events to
+        table the update function.
+
+        Parameters
+        ----------
+        layer : napari layer
+            The layer to connect the update_table method to.
+        """
+        layer.events.properties.connect(self.update_table)
+
     def _disconnect_layer_events(self, layer_name: str):
         """Connect the selected layer's properties events to
         table the update function.
@@ -160,7 +190,23 @@ class QtPropertiesTable(QWidget):
         layer = self.viewer.layers[layer_name]
         layer.events.data.disconnect(self.update_table)
 
+    def _disconnect_layer_events_for_layer(self, layer):
+        """Connect the selected layer's properties events to
+        table the update function.
+
+        Parameters
+        ----------
+        layer : napari layer
+            The layer to disconnect the update_table from
+        """
+        layer.events.data.disconnect(self.update_table)
+
     def _is_points_layer(self, layer):
+        print("----in is_points_layer-------")
+        print(type(layer))
+        # for element in layer:
+        #     print(type(element), element)
+        # pprint(layer.data)
         return layer.data.shape[1] == 3
 
     # def _on_cell_edit(self, event):

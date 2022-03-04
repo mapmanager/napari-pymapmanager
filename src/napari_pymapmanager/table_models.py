@@ -1,6 +1,7 @@
 from qtpy.QtCore import QAbstractTableModel, Qt
 
-from .utils import str2prop
+#from .utils import str2prop
+from utils import str2prop
 
 
 class DataTableModel(QAbstractTableModel):

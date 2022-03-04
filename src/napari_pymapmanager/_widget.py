@@ -13,6 +13,7 @@ logger = get_logger('myLogger', level=logging.DEBUG)
 #from .table_models import DataTableModel
 from table_models import DataTableModel
 
+# this is different for git commit -p
 
 class QtPropertiesTable(QWidget):
     """The QWdiget containing the properties table and
@@ -113,7 +114,7 @@ class QtPropertiesTable(QWidget):
         print(f'  event.source: {event.source}')
         print(f"  event.added: {event.added}")  # sometimes a dict ???
         print(f'{traceback.print_stack()}')
-        
+
         # return if event.added is empty
         if not event.added:
             print(f'  no event.added ... returning')

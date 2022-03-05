@@ -3,10 +3,7 @@ This module is an example of a barebones numpy reader plugin for napari.
 
 It implements the Reader specification, but your plugin may choose to
 implement multiple readers or even other plugin contributions. see:
-https://napari.org/plugins/stable/npe2_manifest_specification.html
-
-Replace code below accordingly.  For complete documentation see:
-https://napari.org/docs/dev/plugins/index.html
+https://napari.org/plugins/stable/guides.html#readers
 """
 import numpy as np
 
@@ -32,7 +29,7 @@ def napari_get_reader(path):
         path = path[0]
 
     # if we know we cannot read the file, we immediately return None.
-    if not path.endswith(".npy"):
+    if not (path.endswith(".tif") or path.endswith(".tiff")):
         return None
 
     # otherwise we return the *function* that can read ``path``.
@@ -57,9 +54,9 @@ def reader_function(path):
         A list of LayerData tuples where each tuple in the list contains
         (data, metadata, layer_type), where data is a numpy array, metadata is
         a dict of keyword arguments for the corresponding viewer.add_* method
-        in napari, and layer_type is a lower-case string naming the type of layer.
-        Both "meta", and "layer_type" are optional. napari will default to
-        layer_type=="image" if not provided
+        in napari, and layer_type is a lower-case string naming the type of
+        layer. Both "meta", and "layer_type" are optional. napari will
+        default to layer_type=="image" if not provided
     """
     # handle both a string and a list of strings
     paths = [path] if isinstance(path, str) else path
@@ -68,8 +65,21 @@ def reader_function(path):
     # stack arrays into single array
     data = np.squeeze(np.stack(arrays))
 
+    # read the coordinates from somewhere
+    zSlice = 29
+    points = np.array(  # noqa
+        [
+            [zSlice, 100, 100],  # noqa
+            [zSlice, 200, 200],  # noqa
+            [zSlice, 300, 300],  # noqa
+            [zSlice, 400, 400],
+        ]  # noqa
+    )
     # optional kwargs for the corresponding viewer.add_* method
-    add_kwargs = {}
+    add_points_kwargs = {
+        "size": 2,
+        "face_color": "r",
+        "properties": {"x": points[2], "y": points[1], "z": points[0]},
+    }
 
-    layer_type = "image"  # optional, default is "image"
-    return [(data, add_kwargs, layer_type)]
+    return [(data, {}, "image"), (points, add_points_kwargs, "points")]
